@@ -1,0 +1,21 @@
+zuul:
+    routes:
+        customer:
+            path: /customers/**
+            url: http://customer.customer/customers/
+
+        article:
+            path: /article/**
+            url: http://article.article/articles/
+
+        order:
+            path: /orders/**
+            url: http://order.order/orders/
+
+        cart:
+            path: /carts/**
+            url: http://cart.cart/carts/
+
+        authentication:
+            path: /authentication/**
+            url: http://authentication.authentication/
