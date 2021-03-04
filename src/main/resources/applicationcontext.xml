@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xsi:schemaLocation="
+http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx-4.3.xsd" xmlns:tx="http://www.springframework.org/schema/tx" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans">
+
+    <bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder">
+        <constructor-arg name="strength" value="12" />
+    </bean>
+
+    <bean id="authenticationTokenManager" class="de.leuphana.shop.authenticationmicroservice.component.structure.AuthenticationTokenManager">
+        <constructor-arg name="privateKeyFilePath" value="jwt/key.der" />
+        <constructor-arg name="publicKeyFilePath" value="jwt/public.der" />
+    </bean>
+
+    <bean id="authenticationService" scope="singleton" class="de.leuphana.shop.authenticationmicroservice.component.behaviour.AuthenticationServiceImplementation">
+        <constructor-arg>
+            <null />
+        </constructor-arg>
+        <constructor-arg ref="passwordEncoder" />
+        <constructor-arg ref="authenticationTokenManager" />
+    </bean>
+</beans>

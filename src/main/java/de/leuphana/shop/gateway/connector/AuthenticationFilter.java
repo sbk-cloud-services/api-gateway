@@ -1,33 +1,48 @@
 package de.leuphana.shop.gateway.connector;
 
-import com.netflix.zuul.ZuulFilter;
-import com.netflix.zuul.exception.ZuulException;
+import java.io.IOException;
 
-public class AuthenticationFilter extends ZuulFilter {
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-    @Override
-    public boolean shouldFilter() {
-        // TODO Auto-generated method stub
-        return false;
-    }
+import org.springframework.web.filter.GenericFilterBean;
 
-    @Override
-    public Object run() throws ZuulException {
-        // TODO Auto-generated method stub
-        return null;
-    }
+import de.leuphana.shop.authenticationmicroservice.component.behaviour.AuthenticationService;
+import de.leuphana.shop.authenticationmicroservice.component.structure.IncorrectAuthenticationTokenException;
 
-    @Override
-    public String filterType() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+public class AuthenticationFilter extends GenericFilterBean {
 
     @Override
-    public int filterOrder() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        AuthenticationService authenticationService = (AuthenticationService) GatewayServiceApplication
+                .getApplicationContext().getBean("authenticationService");
 
-  
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+        String authorizationHeader = httpRequest.getHeader("Authorization");
+
+        if(authorizationHeader == null) {
+            httpResponse.setStatus(401);
+        } else {
+            String[] authorizationHeaderParts = authorizationHeader.split(" ");
+
+            if (authorizationHeaderParts.length != 2) {
+                httpResponse.setStatus(401);
+            } else {
+                try {
+                    authenticationService.verifyToken(authorizationHeaderParts[1]);
+                } catch (IncorrectAuthenticationTokenException e) {
+                    httpResponse.setStatus(401);
+                }
+
+                chain.doFilter(request, response);
+            }
+        }
+    }
 }
