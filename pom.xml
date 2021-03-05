@@ -33,6 +33,14 @@
         <maven.install>3.0.0-M1</maven.install>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>github</id>
+            <name>GitHub sbk-cloud-services Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/sbk-cloud-services/authentication-microservice</url>
+        </repository>
+    </repositories>
+
 
     <dependencies>
         <!-- Spring Boot Web -->

@@ -2,6 +2,9 @@ version: "3.0"
 services:
   gateway:
     image: ghcr.io/sbk-cloud-services/gateway:latest
-    build: .
+    build:
+      context: .
+      args:
+        m2: ${m2}
     ports:
       - "127.0.0.1:8080:8080"

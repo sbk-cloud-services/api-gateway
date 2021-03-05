@@ -5,7 +5,7 @@ zuul:
             url: http://customer.customer/customers/
 
         article:
-            path: /article/**
+            path: /articles/**
             url: http://article.article/articles/
 
         order:

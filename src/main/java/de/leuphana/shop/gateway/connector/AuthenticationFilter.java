@@ -1,6 +1,7 @@
 package de.leuphana.shop.gateway.connector;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -9,6 +10,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
 import de.leuphana.shop.authenticationmicroservice.component.behaviour.AuthenticationService;
@@ -37,9 +41,52 @@ public class AuthenticationFilter extends GenericFilterBean {
             } else {
                 try {
                     authenticationService.verifyToken(authorizationHeaderParts[1]);
-                } catch (IncorrectAuthenticationTokenException e) {
-                    httpResponse.setStatus(401);
-                }
+                    Authentication authentication = new Authentication() {
+
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public String getName() {
+                            // TODO Auto-generated method stub
+                            return null;
+                        }
+
+                        @Override
+                        public Collection<? extends GrantedAuthority> getAuthorities() {
+                            // TODO Auto-generated method stub
+                            return null;
+                        }
+
+                        @Override
+                        public Object getCredentials() {
+                            // TODO Auto-generated method stub
+                            return null;
+                        }
+
+                        @Override
+                        public Object getDetails() {
+                            return null;
+                        }
+
+                        @Override
+                        public Object getPrincipal() {
+                            return null;
+                        }
+
+                        @Override
+                        public boolean isAuthenticated() {
+                            return true;
+                        }
+
+                        @Override
+                        public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+                            // TODO Auto-generated method stub
+                        }
+                        
+                    };
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } catch (IncorrectAuthenticationTokenException e) {}
 
                 chain.doFilter(request, response);
             }
