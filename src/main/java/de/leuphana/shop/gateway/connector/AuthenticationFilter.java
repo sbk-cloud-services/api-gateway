@@ -1,94 +1,58 @@
 package de.leuphana.shop.gateway.connector;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.filter.GenericFilterBean;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import de.leuphana.shop.authenticationmicroservice.component.behaviour.AuthenticationService;
 import de.leuphana.shop.authenticationmicroservice.component.structure.IncorrectAuthenticationTokenException;
-
-public class AuthenticationFilter extends GenericFilterBean {
+public class AuthenticationFilter extends OncePerRequestFilter {
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-        AuthenticationService authenticationService = (AuthenticationService) GatewayServiceApplication
-                .getApplicationContext().getBean("authenticationService");
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
+	
+        AuthenticationService authenticationService = (AuthenticationService) GatewayServiceApplication.getApplicationContext().getBean("authenticationService");
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
-
         String authorizationHeader = httpRequest.getHeader("Authorization");
 
         if(authorizationHeader == null) {
-            httpResponse.setStatus(401);
+            throw new AuthenticationCredentialsNotFoundException("Missing auth header");
         } else {
             String[] authorizationHeaderParts = authorizationHeader.split(" ");
 
             if (authorizationHeaderParts.length != 2) {
-                httpResponse.setStatus(401);
+                throw new AuthenticationCredentialsNotFoundException("Auth header type not specified");
             } else {
                 try {
                     authenticationService.verifyToken(authorizationHeaderParts[1]);
-                    Authentication authentication = new Authentication() {
 
-                        private static final long serialVersionUID = 1L;
+                    List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+                    authorities.add(new SimpleGrantedAuthority("DEFAULT"));
 
-                        @Override
-                        public String getName() {
-                            // TODO Auto-generated method stub
-                            return null;
-                        }
+                    User user = new User("1", "1", true, true, true, true, authorities);
 
-                        @Override
-                        public Collection<? extends GrantedAuthority> getAuthorities() {
-                            // TODO Auto-generated method stub
-                            return null;
-                        }
+                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user, null, authorities);
+                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
-                        @Override
-                        public Object getCredentials() {
-                            // TODO Auto-generated method stub
-                            return null;
-                        }
-
-                        @Override
-                        public Object getDetails() {
-                            return null;
-                        }
-
-                        @Override
-                        public Object getPrincipal() {
-                            return null;
-                        }
-
-                        @Override
-                        public boolean isAuthenticated() {
-                            return true;
-                        }
-
-                        @Override
-                        public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-                            // TODO Auto-generated method stub
-                        }
-                        
-                    };
-
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                } catch (IncorrectAuthenticationTokenException e) {}
-
-                chain.doFilter(request, response);
+                    chain.doFilter(request, response);
+                } catch(IncorrectAuthenticationTokenException exception) {
+                    throw new AuthenticationServiceException("Invalid or expired token");
+                }
             }
         }
     }
