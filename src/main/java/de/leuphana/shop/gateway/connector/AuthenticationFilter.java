@@ -19,7 +19,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import de.leuphana.shop.authenticationmicroservice.component.behaviour.AuthenticationService;
-import de.leuphana.shop.authenticationmicroservice.component.structure.IncorrectAuthenticationTokenException;
+import de.leuphana.shop.authenticationmicroservice.component.behaviour.exception.IncorrectAuthenticationTokenException;
+
 public class AuthenticationFilter extends OncePerRequestFilter {
 
     @Override
